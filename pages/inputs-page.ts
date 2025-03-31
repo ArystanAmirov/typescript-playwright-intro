@@ -9,8 +9,12 @@ export class InputsPage {
         this.input = page.locator('input[type="number"]')
     }
 
-    async fillInput(number: number) {
+    async fillInputWithNumber(number: number) {
         await this.input.fill(`${number}`)
+    }
+
+    async fillInputWithText(text: string) {
+        await this.input.type(text)
     }
 
     async clearInput() {

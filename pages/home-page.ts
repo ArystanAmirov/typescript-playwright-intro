@@ -7,6 +7,7 @@ export class HomePage {
     inputsPageLink: Locator
     dropdownPageLink: Locator
     checkboxesPageLink: Locator
+    dragAndDropPageLink: Locator
 
 
 
@@ -17,6 +18,7 @@ export class HomePage {
         this.inputsPageLink = page.locator('a[href="/inputs"]')
         this.dropdownPageLink = page.locator('a[href="/dropdown"]')
         this.checkboxesPageLink = page.locator('a[href="/checkboxes"]')
+        this.dragAndDropPageLink = page.locator('a[href="/drag_and_drop"]')
     }
 
     async openLoginPage() {
@@ -38,4 +40,8 @@ export class HomePage {
     async openCheckboxesPage() {
         await this.checkboxesPageLink.click()
     } 
+
+    async openDragAndDropPage() {
+        await this.dragAndDropPageLink.click()
+    }
 }

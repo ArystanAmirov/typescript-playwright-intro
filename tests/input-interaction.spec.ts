@@ -10,7 +10,7 @@ test('should interact with input field', async ({ page }) => {
 
     await homePage.openInputsPage()
 
-    await inputsPage.fillInput(42)
+    await inputsPage.fillInputWithNumber(42)
     const valueAfterFill = await inputsPage.input.inputValue()
     await expect(valueAfterFill).toBe('42')
 
