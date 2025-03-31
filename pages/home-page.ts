@@ -8,7 +8,10 @@ export class HomePage {
     dropdownPageLink: Locator
     checkboxesPageLink: Locator
     dragAndDropPageLink: Locator
-
+    jsAlertsPageLink: Locator
+    hoversPage: Locator
+    addRemoveElementsPage: Locator
+    
 
 
     constructor (page: Page) {
@@ -19,6 +22,9 @@ export class HomePage {
         this.dropdownPageLink = page.locator('a[href="/dropdown"]')
         this.checkboxesPageLink = page.locator('a[href="/checkboxes"]')
         this.dragAndDropPageLink = page.locator('a[href="/drag_and_drop"]')
+        this.jsAlertsPageLink = page.locator('a[href="/javascript_alerts"]')
+        this.hoversPage = page.locator('a[href="/hovers"]')
+        this.addRemoveElementsPage = page.locator('a[href="/add_remove_elements/"]')
     }
 
     async openLoginPage() {
@@ -43,5 +49,17 @@ export class HomePage {
 
     async openDragAndDropPage() {
         await this.dragAndDropPageLink.click()
+    }
+
+    async openJSalertsPage() {
+        await this.jsAlertsPageLink.click()
+    }
+
+    async openHoversPage() {
+        await this.hoversPage.click()
+    }
+    
+    async openAddRemoveElementsPage() {
+        await this.addRemoveElementsPage.click()
     }
 }

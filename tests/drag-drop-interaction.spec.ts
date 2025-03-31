@@ -3,7 +3,7 @@ import { HomePage } from '../pages/home-page'
 import { DragDropPage } from '../pages/drag-drop-page'
 import { text } from 'stream/consumers'
 
-test('', async ({ page }) => {
+test('should swap elements on drag and drop', async ({ page }) => {
     const homePage = new HomePage(page)
     const dragDropPage = new DragDropPage(page)
 
