@@ -11,6 +11,7 @@ export class HomePage {
     jsAlertsPageLink: Locator
     hoversPage: Locator
     addRemoveElementsPage: Locator
+    dynamicLoadingPage: Locator
     
 
 
@@ -25,6 +26,7 @@ export class HomePage {
         this.jsAlertsPageLink = page.locator('a[href="/javascript_alerts"]')
         this.hoversPage = page.locator('a[href="/hovers"]')
         this.addRemoveElementsPage = page.locator('a[href="/add_remove_elements/"]')
+        this.dynamicLoadingPage = page.locator('a[href="/dynamic_loading"]')
     }
 
     async openLoginPage() {
@@ -61,5 +63,9 @@ export class HomePage {
     
     async openAddRemoveElementsPage() {
         await this.addRemoveElementsPage.click()
+    }
+
+    async openDynamicLoadingPage() {
+        await this.dynamicLoadingPage.click()
     }
 }
