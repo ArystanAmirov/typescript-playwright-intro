@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { HoversPage } from '../pages/hovers-page'
+import { HomePage } from '../../pages/home-page'
+import { HoversPage } from '../../pages/hovers-page'
 
 test('should show and hide user info on hover', async ({ page }) => {
     const homePage = new HomePage(page)

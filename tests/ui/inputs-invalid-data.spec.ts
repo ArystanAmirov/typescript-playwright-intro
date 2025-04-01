@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { InputsPage } from '../pages/inputs-page'
+import { HomePage } from '../../pages/home-page'
+import { InputsPage } from '../../pages/inputs-page'
 
 test('should reject letters and accept numbers', async ({ page }) => {
     const homePage = new HomePage(page)

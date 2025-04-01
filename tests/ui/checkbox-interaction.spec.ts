@@ -1,6 +1,6 @@
 import {test, expect, Locator} from '@playwright/test'
-import { HomePage } from '../pages/home-page';
-import { CheckboxesPage } from '../pages/checkboxes-page';
+import { HomePage } from '../../pages/home-page';
+import { CheckboxesPage } from '../../pages/checkboxes-page';
 
 test('should check checkbox interaction', async ({ page }) => {
     const homePage = new HomePage(page)

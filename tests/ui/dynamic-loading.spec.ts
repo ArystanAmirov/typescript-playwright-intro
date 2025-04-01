@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { DynamicLoadingPage } from '../pages/dynamic-loading-page'
+import { HomePage } from '../../pages/home-page'
+import { DynamicLoadingPage } from '../../pages/dynamic-loading-page'
 
 
 test('should wait for hidden element to become visible and verify text', async ({ page }) => {

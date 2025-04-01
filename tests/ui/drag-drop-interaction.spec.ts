@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { DragDropPage } from '../pages/drag-drop-page'
+import { HomePage } from '../../pages/home-page'
+import { DragDropPage } from '../../pages/drag-drop-page'
 import { text } from 'stream/consumers'
 
 test('should swap elements on drag and drop', async ({ page }) => {

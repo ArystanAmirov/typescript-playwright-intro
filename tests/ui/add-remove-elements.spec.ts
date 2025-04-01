@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { AddRemoveElementsPage } from '../pages/add-remove-elements-page'
+import { AddRemoveElementsPage } from '../../pages/add-remove-elements-page'
+import { HomePage } from '../../pages/home-page'
 
 test('should add and remove an element', async ({ page }) => {
     const homePage = new HomePage(page)

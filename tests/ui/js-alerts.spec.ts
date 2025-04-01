@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from '../pages/home-page'
-import { JsAlertsPage } from '../pages/js-alerts-page'
+import { HomePage } from '../../pages/home-page'
+import { JsAlertsPage } from '../../pages/js-alerts-page'
 
 
 test('should handle JS alert and show success message', async ({ page  }) => {

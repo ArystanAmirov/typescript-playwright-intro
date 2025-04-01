@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { HomePage } from '../pages/home-page';
-import { DropdownPage } from '../pages/dropdown-page';
+import { HomePage } from '../../pages/home-page';
+import { DropdownPage } from '../../pages/dropdown-page';
 
 test('should select Option 2 from dropdown', async ({ page }) => {
     const homePage = new HomePage(page)
