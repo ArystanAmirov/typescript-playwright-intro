@@ -1,0 +1,16 @@
+stages:
+  - test
+
+playwright_tests:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.49.0-noble
+  script:
+    - npm ci
+    - npx playwright test
+  artifacts:
+    when: always
+    paths:
+      - test-results/junit-report.xml
+      - playwright-report/
+    expire_in: 4 days
+    
