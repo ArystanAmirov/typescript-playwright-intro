@@ -6,7 +6,7 @@ playwright_tests:
   image: mcr.microsoft.com/playwright:v1.49.0-noble
   script:
     - npm ci
-    - npx playwright install --with-deps
+    - npx playwright install --with-deps chromium
     - npx playwright test
   artifacts:
     when: always
