@@ -25,35 +25,23 @@ upload_zephyr_results:
     - apt-get update && apt-get install -y curl jq
   script:
     - |
-      TEST_CYCLE_RESPONSE=$(curl -s -X POST \
-        -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
-        -H "Content-Type: application/json" \
-        "https://arystanamirov.atlassian.net/rest/tests/2.0/testrun" \
-        -d '{
-          "name": "Automated Playwright Run - $(date -u +%Y-%m-%dT%H:%M:%SZ)",
-          "projectKey": "TEST"
-        }')
-
-      TEST_CYCLE_KEY=$(echo "$TEST_CYCLE_RESPONSE" | jq -r '.key')
-
-      if [ -z "$TEST_CYCLE_KEY" ]; then
-        echo "Failed to create test cycle: $TEST_CYCLE_RESPONSE"
-        exit 1
-      fi
-
       for TEST_CASE in $(jq -r '.testsuites[] | .testsuite[] | .testcase | select(.name | contains("[TEST-T")) | .name' test-results/junit-report.xml); do
         TEST_KEY=$(echo "$TEST_CASE" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
         STATUS=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | if .failure then "Fail" else "Pass" end' test-results/junit-report.xml)
+        EXECUTION_TIME=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | .["@time"]' test-results/junit-report.xml | awk '{print int($1 * 1000)}')
 
         curl -s -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
-          "https://arystanamirov.atlassian.net/rest/tests/2.0/testexecution" \
+          "https://api.zephyrscale.smartbear.com/v2/testexecutions" \
           -d "{
-            \"testRunKey\": \"$TEST_CYCLE_KEY\",
+            \"projectKey\": \"TEST\",
             \"testCaseKey\": \"TEST-$TEST_KEY\",
-            \"status\": \"$STATUS\",
-            \"environment\": \"chromium\",
-            \"executionTime\": 1
+            \"testCycleKey\": \"TEST-R4\",
+            \"statusName\": \"$STATUS\",
+            \"environmentName\": \"chromium\",
+            \"actualEndDate\": \"2025-04-29T04:30:00Z\",
+            \"executionTime\": $EXECUTION_TIME,
+            \"comment\": \"Automated test executed via GitLab CI\"
           }"
       done
