@@ -50,7 +50,7 @@ upload_zephyr_results:
             \"executionTime\": $execution_time,
             \"comment\": \"Automated test executed via GitLab CI\",
             \"customFields\": {
-              \"Tester\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
+              \"Tester\": \"a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
             }
           }")
         if [ "$(printf '%s' "$response" | tail -n1)" -ne 201 ]; then exit 1; fi
