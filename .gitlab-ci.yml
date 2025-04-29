@@ -52,9 +52,10 @@ upload_zephyr_results:
           STATUS="Pass"
         fi
         echo "STATUS: $STATUS"
-        EXECUTION_TIME=$(echo "$line" | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
+        FULL_LINE=$(grep "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml)
+        EXECUTION_TIME=$(echo "$FULL_LINE" | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
         if [ -z "$EXECUTION_TIME" ]; then
-          echo "Failed to extract EXECUTION_TIME for $FULL_NAME"
+          echo "Failed to extract EXECUTION_TIME for $FULL_NAME, setting to 0"
           EXECUTION_TIME=0
         fi
         echo "EXECUTION_TIME: $EXECUTION_TIME"
@@ -72,5 +73,5 @@ upload_zephyr_results:
             \"actualEndDate\": \"2025-04-29T04:30:00Z\",
             \"executionTime\": $EXECUTION_TIME,
             \"comment\": \"Automated test executed via GitLab CI\"
-          }"
+          }" || echo "Failed to send test execution for TEST-$TEST_KEY"
       done
