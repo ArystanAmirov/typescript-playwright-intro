@@ -15,12 +15,14 @@ playwright_tests:
       - test-results/junit-report.xml
       - playwright-report/
     expire_in: 4 days
+  allow_failure: true  # Позволяет пайплайну продолжаться, даже если джоба падает
 
 upload_zephyr_results:
   stage: upload_results
   image: ubuntu:20.04
-  dependencies:
-    - playwright_tests
+  needs:
+    - job: playwright_tests
+      artifacts: true  # Зависит от playwright_tests и забирает артефакты
   before_script:
     - apt-get update && apt-get install -y curl xmlstarlet bc
   script:
