@@ -8,7 +8,8 @@ playwright_tests:
   script:
     - npm ci
     - npx playwright install chromium
-    - npx playwright test
+    - mkdir -p test-results
+    - npx playwright test --reporter=junit
   artifacts:
     when: always
     paths:
