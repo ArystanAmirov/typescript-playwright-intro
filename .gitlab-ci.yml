@@ -29,18 +29,15 @@ upload_zephyr_results:
         echo "JUnit report not found!"
         exit 1
       fi
-
       echo "Parsing JUnit report..."
-      xmlstarlet sel -T -t -m "//testcase[contains(@name, '[TEST-T')]" \
+      xmlstarlet sel -t -m "//testcase[contains(@name, '[TEST-T')]" \
         -v "substring-before(substring-after(@name, '[TEST-'), ']')" -o "|" \
-        -v "count(failure)=0" -i "count(failure)=0" -o "Pass" -b -i "count(failure)>0" -o "Fail" -b -o "|" \
+        -i "count(failure)=0" -o "Pass" -b -i "count(failure)>0" -o "Fail" -b -o "|" \
         -v "@time" -n test-results/junit-report.xml > parsed_tests.txt
-
       if [ ! -s parsed_tests.txt ]; then
         echo "No test cases with [TEST-T*] found!"
         exit 0
       fi
-
       while IFS='|' read -r test_key status time; do
         if [ -z "$test_key" ]; then
           echo "Skipping empty test_key"
@@ -54,8 +51,7 @@ upload_zephyr_results:
           execution_time=0
         fi
         echo "Execution Time: $execution_time ms"
-
-        response=$(curl -s -w "%{http_code}" -X POST \
+        response=$(curl -s -w "\n%{http_code}" -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           "https://api.zephyrscale.smartbear.com/v2/testexecutions" \
