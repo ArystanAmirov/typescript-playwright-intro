@@ -36,16 +36,6 @@ upload_zephyr_results:
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           "https://api.zephyrscale.smartbear.com/v2/testexecutions" \
-          -d "{
-            \"projectKey\": \"TEST\",
-            \"testCaseKey\": \"TEST-$test_key\",
-            \"testCycleKey\": \"TEST-R5\",
-            \"statusName\": \"$status\",
-            \"environmentName\": \"chromium\",
-            \"actualEndDate\": \"2025-04-29T10:04:07Z\",
-            \"executionTime\": $execution_time,
-            \"comment\": \"Automated test executed via GitLab CI\"
-          }")
-        http_code=$(echo "$response" | tail -n1)
-        [ "$http_code" -ne 201 ] && exit 1
+          -d "{\"projectKey\":\"TEST\",\"testCaseKey\":\"TEST-$test_key\",\"testCycleKey\":\"TEST-R5\",\"statusName\":\"$status\",\"environmentName\":\"chromium\",\"actualEndDate\":\"2025-04-29T10:04:07Z\",\"executionTime\":$execution_time,\"comment\":\"Automated test executed via GitLab CI\"}")
+        [ "$(printf '%s' "$response" | tail -n1)" -ne 201 ] && exit 1
       done
