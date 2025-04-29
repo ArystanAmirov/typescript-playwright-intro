@@ -32,15 +32,23 @@ upload_zephyr_results:
 
       cat test-results/junit-report.xml
 
+      echo "Looking for test cases..."
+      grep -oP '<testcase[^>]*name="\[TEST-T[0-9]+\][^"]+"' test-results/junit-report.xml || echo "No test cases found with pattern"
+
       grep -oP '<testcase[^>]*name="\[TEST-T[0-9]+\][^"]+"' test-results/junit-report.xml | while read -r line; do
+        echo "Found line: $line"
         TEST_KEY=$(echo "$line" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
+        echo "TEST_KEY: $TEST_KEY"
         FULL_NAME=$(echo "$line" | grep -oP '(?<=")[^"]+')
+        echo "FULL_NAME: $FULL_NAME"
         if grep -A 1 "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -q "<failure"; then
           STATUS="Fail"
         else
           STATUS="Pass"
         fi
+        echo "STATUS: $STATUS"
         EXECUTION_TIME=$(grep "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
+        echo "EXECUTION_TIME: $EXECUTION_TIME"
 
         curl -s -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
