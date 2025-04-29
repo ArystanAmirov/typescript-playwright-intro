@@ -1,5 +1,7 @@
 stages:
   - test
+  - upload_results
+
 
 playwright_tests:
   stage: test
@@ -15,3 +17,52 @@ playwright_tests:
       - playwright-report/
     expire_in: 4 days
     
+
+upload_zephyr_results:
+  stage: upload_results
+  image: ubuntu:20.04
+  dependencies:
+    - playwright_tests
+  before_script:
+    - apt-get update && apt-get install -y curl jq
+  script:
+    - |
+  # Создаем тестовый цикл в Zephyr Scale
+      TEST_CYCLE_RESPONSE=$(curl -s -X POST \
+        -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
+        -H "Content-Type: application/json" \
+        "https://arystanamirov.atlassian.net/rest/tests/2.0/testrun" \
+        -d '{
+          "name": "Automated Playwright Run - $(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "projectKey": "TEST"
+        }')
+
+      # Извлекаем ID тестового цикла
+      TEST_CYCLE_KEY=$(echo "$TEST_CYCLE_RESPONSE" | jq -r '.key')
+
+      # Проверяем, что цикл создался
+      if [ -z "$TEST_CYCLE_KEY" ]; then
+        echo "Failed to create test cycle: $TEST_CYCLE_RESPONSE"
+        exit 1
+      fi
+
+      # Парсим JUnit-отчет и отправляем результаты
+      for TEST_CASE in $(jq -r '.testsuites[] | .testsuite[] | .testcase | select(.name | contains("[TEST-T")) | .name' test-results/junit-report.xml); do
+        # Извлекаем ID тест-кейса (например, TEST-T1)
+        TEST_KEY=$(echo "$TEST_CASE" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
+        # Извлекаем статус (Pass/Fail)
+        STATUS=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | if .failure then "Fail" else "Pass" end' test-results/junit-report.xml)
+
+        # Отправляем результат в Zephyr Scale
+        curl -s -X POST \
+          -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
+          -H "Content-Type: application/json" \
+          "https://arystanamirov.atlassian.net/rest/tests/2.0/testexecution" \
+          -d "{
+            \"testRunKey\": \"$TEST_CYCLE_KEY\",
+            \"testCaseKey\": \"TEST-$TEST_KEY\",
+            \"status\": \"$STATUS\",
+            \"environment\": \"chromium\",
+            \"executionTime\": 1
+          }"
+      done
