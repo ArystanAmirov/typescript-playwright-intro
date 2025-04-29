@@ -52,7 +52,7 @@ upload_zephyr_results:
           STATUS="Pass"
         fi
         echo "STATUS: $STATUS"
-        EXECUTION_TIME=$(grep "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
+        EXECUTION_TIME=$(grep "<testcase[^>]*name=\"$FULL_NAME\"[^>]*" test-results/junit-report.xml | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
         echo "EXECUTION_TIME: $EXECUTION_TIME"
 
         curl -s -X POST \
