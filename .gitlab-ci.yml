@@ -49,10 +49,7 @@ upload_zephyr_results:
             \"environmentName\": \"chromium\",
             \"actualEndDate\": \"$current_time\",
             \"executionTime\": $execution_time,
-            \"comment\": \"Automated test executed via GitLab CI\",
-            \"customFields\": {
-              \"Tester\": \"a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
-            }
+            \"comment\": \"Automated test executed via GitLab CI\"
           }")
         if [ "$(printf '%s' "$response" | tail -n1)" -ne 201 ]; then exit 1; fi
       done < parsed_tests.txt
