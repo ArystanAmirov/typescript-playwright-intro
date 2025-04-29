@@ -31,9 +31,9 @@ upload_zephyr_results:
       fi
 
       echo "Parsing JUnit report..."
-      xmlstarlet sel -t -m "//testcase[contains(@name, '[TEST-T')]" \
+      xmlstarlet sel -T -t -m "//testcase[contains(@name, '[TEST-T')]" \
         -v "substring-before(substring-after(@name, '[TEST-'), ']')" -o "|" \
-        -i "failure" -o "Fail" -e -o "Pass" -o "|" \
+        -v "count(failure)=0" -i "count(failure)=0" -o "Pass" -b -i "count(failure)>0" -o "Fail" -b -o "|" \
         -v "@time" -n test-results/junit-report.xml > parsed_tests.txt
 
       if [ ! -s parsed_tests.txt ]; then
