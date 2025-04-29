@@ -2,7 +2,6 @@ stages:
   - test
   - upload_results
 
-
 playwright_tests:
   stage: test
   image: mcr.microsoft.com/playwright:v1.49.0-noble
@@ -16,7 +15,6 @@ playwright_tests:
       - test-results/junit-report.xml
       - playwright-report/
     expire_in: 4 days
-    
 
 upload_zephyr_results:
   stage: upload_results
@@ -27,7 +25,6 @@ upload_zephyr_results:
     - apt-get update && apt-get install -y curl jq
   script:
     - |
-  # Создаем тестовый цикл в Zephyr Scale
       TEST_CYCLE_RESPONSE=$(curl -s -X POST \
         -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
         -H "Content-Type: application/json" \
@@ -37,23 +34,17 @@ upload_zephyr_results:
           "projectKey": "TEST"
         }')
 
-      # Извлекаем ID тестового цикла
       TEST_CYCLE_KEY=$(echo "$TEST_CYCLE_RESPONSE" | jq -r '.key')
 
-      # Проверяем, что цикл создался
       if [ -z "$TEST_CYCLE_KEY" ]; then
         echo "Failed to create test cycle: $TEST_CYCLE_RESPONSE"
         exit 1
       fi
 
-      # Парсим JUnit-отчет и отправляем результаты
       for TEST_CASE in $(jq -r '.testsuites[] | .testsuite[] | .testcase | select(.name | contains("[TEST-T")) | .name' test-results/junit-report.xml); do
-        # Извлекаем ID тест-кейса (например, TEST-T1)
         TEST_KEY=$(echo "$TEST_CASE" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
-        # Извлекаем статус (Pass/Fail)
         STATUS=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | if .failure then "Fail" else "Pass" end' test-results/junit-report.xml)
 
-        # Отправляем результат в Zephyr Scale
         curl -s -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
