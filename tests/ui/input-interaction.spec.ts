@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { HomePage } from '../../pages/home-page';
 import { InputsPage } from '../../pages/inputs-page';
 
-test('should interact with input field', async ({ page }) => {
+test('[TEST-T3] should interact with input field', async ({ page }) => {
     const homePage = new HomePage(page)
     const inputsPage = new InputsPage(page)
 
