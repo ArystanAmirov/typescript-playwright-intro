@@ -19,7 +19,7 @@ export default defineConfig({
     ['junit', { outputFile: 'test-results/junit-report.xml' }], // JUnit-report
     ['html', { outputFolder: 'playwright-report' }], // HTML-report
     ['playwright-zephyr', {
-      host: 'https://arystan.amirov.atlassian.net',
+      host: 'https://arystanamirov.atlassian.net',
       authorizationToken: process.env.ZEPHYR_AUTH_TOKEN,
       projectKey: 'TEST',
       testCycle: {
