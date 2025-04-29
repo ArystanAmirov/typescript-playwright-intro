@@ -18,6 +18,14 @@ export default defineConfig({
     ['list'], // Console output
     ['junit', { outputFile: 'test-results/junit-report.xml' }], // JUnit-report
     ['html', { outputFolder: 'playwright-report' }], // HTML-report
+    ['playwright-zephyr', {
+      host: 'https://arystan.amirov.atlassian.net',
+      authorizationToken: process.env.ZEPHYR_AUTH_TOKEN,
+      projectKey: 'TEST',
+      testCycle: {
+        name: `Automated Playwright Run - ${new Date().toISOString()}`,
+      },
+    }],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
