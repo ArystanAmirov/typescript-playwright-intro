@@ -22,13 +22,18 @@ upload_zephyr_results:
   dependencies:
     - playwright_tests
   before_script:
-    - apt-get update && apt-get install -y curl jq
+    - apt-get update && apt-get install -y curl grep
   script:
     - |
-      for TEST_CASE in $(jq -r '.testsuites[] | .testsuite[] | .testcase | select(.name | contains("[TEST-T")) | .name' test-results/junit-report.xml); do
-        TEST_KEY=$(echo "$TEST_CASE" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
-        STATUS=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | if .failure then "Fail" else "Pass" end' test-results/junit-report.xml)
-        EXECUTION_TIME=$(jq -r --arg name "$TEST_CASE" '.testsuites[] | .testsuite[] | .testcase | select(.name == $name) | .["@time"]' test-results/junit-report.xml | awk '{print int($1 * 1000)}')
+      grep -oP '<testcase name="\[TEST-T[0-9]+\][^"]+"' test-results/junit-report.xml | while read -r line; do
+        TEST_KEY=$(echo "$line" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
+        FULL_NAME=$(echo "$line" | grep -oP '(?<=")[^"]+')
+        if grep -A 1 "<testcase name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -q "<failure"; then
+          STATUS="Fail"
+        else
+          STATUS="Pass"
+        fi
+        EXECUTION_TIME=$(grep "<testcase name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
 
         curl -s -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
