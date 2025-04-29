@@ -9,7 +9,7 @@ playwright_tests:
     - npm ci
     - npx playwright install chromium
     - mkdir -p test-results  # Создаём папку test-results
-    - npx playwright test --junit-output=test-results/junit-report.xml
+    - npx playwright test --reporter=junit
   artifacts:
     when: always
     paths:
