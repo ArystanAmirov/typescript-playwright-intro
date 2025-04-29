@@ -22,7 +22,7 @@ upload_zephyr_results:
   dependencies:
     - playwright_tests
   before_script:
-    - apt-get update && apt-get install -y curl grep
+    - apt-get update && apt-get install -y curl xmlstarlet bc
   script:
     - |
       if [ ! -f "test-results/junit-report.xml" ]; then
@@ -30,48 +30,50 @@ upload_zephyr_results:
         exit 1
       fi
 
-      cat test-results/junit-report.xml
+      echo "Parsing JUnit report..."
+      xmlstarlet sel -t -m "//testcase[contains(@name, '[TEST-T')]" \
+        -v "concat(substring-before(substring-after(@name, '[TEST-'), ']'), '|', \
+        if (failure) then 'Fail' else 'Pass', '|', @time)" -n test-results/junit-report.xml > parsed_tests.txt
 
-      echo "Looking for test cases..."
-      TEST_CASES=$(grep -oP '<testcase[^>]*name="\[TEST-T[0-9]+\][^"]*"' test-results/junit-report.xml)
-
-      if [ -z "$TEST_CASES" ]; then
-        echo "No test cases found with pattern [TEST-T*]"
+      if [ ! -s parsed_tests.txt ]; then
+        echo "No test cases with [TEST-T*] found!"
         exit 0
       fi
 
-      echo "$TEST_CASES" | while read -r line; do
-        echo "Found line: $line"
-        TEST_KEY=$(echo "$line" | grep -oP '(?<=TEST-)[A-Z0-9-]+')
-        echo "TEST_KEY: $TEST_KEY"
-        FULL_NAME=$(echo "$line" | grep -oP '(?<=")[^"]+')
-        echo "FULL_NAME: $FULL_NAME"
-        if grep -A 1 "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml | grep -q "<failure"; then
-          STATUS="Fail"
-        else
-          STATUS="Pass"
+      while IFS='|' read -r test_key status time; do
+        if [ -z "$test_key" ]; then
+          echo "Skipping empty test_key"
+          continue
         fi
-        echo "STATUS: $STATUS"
-        FULL_LINE=$(grep "<testcase[^>]*name=\"$FULL_NAME\"" test-results/junit-report.xml)
-        EXECUTION_TIME=$(echo "$FULL_LINE" | grep -oP 'time="\d+\.\d+"' | grep -oP '\d+\.\d+' | awk '{print int($1 * 1000)}')
-        if [ -z "$EXECUTION_TIME" ]; then
-          echo "Failed to extract EXECUTION_TIME for $FULL_NAME, setting to 0"
-          EXECUTION_TIME=0
+        echo "Test Key: TEST-$test_key"
+        echo "Status: $status"
+        execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
+        if [ -z "$execution_time" ]; then
+          echo "Failed to calculate execution_time for TEST-$test_key, setting to 0"
+          execution_time=0
         fi
-        echo "EXECUTION_TIME: $EXECUTION_TIME"
+        echo "Execution Time: $execution_time ms"
 
-        curl -s -X POST \
+        response=$(curl -s -w "%{http_code}" -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
           "https://api.zephyrscale.smartbear.com/v2/testexecutions" \
           -d "{
             \"projectKey\": \"TEST\",
-            \"testCaseKey\": \"TEST-$TEST_KEY\",
+            \"testCaseKey\": \"TEST-$test_key\",
             \"testCycleKey\": \"TEST-R4\",
-            \"statusName\": \"$STATUS\",
+            \"statusName\": \"$status\",
             \"environmentName\": \"chromium\",
-            \"actualEndDate\": \"2025-04-29T04:30:00Z\",
-            \"executionTime\": $EXECUTION_TIME,
+            \"actualEndDate\": \"2025-04-29T10:04:07Z\",
+            \"executionTime\": $execution_time,
             \"comment\": \"Automated test executed via GitLab CI\"
-          }" || echo "Failed to send test execution for TEST-$TEST_KEY"
-      done
+          }")
+        http_code=$(echo "$response" | tail -n1)
+        response_body=$(echo "$response" | head -n -1)
+        if [ "$http_code" -ne 201 ]; then
+          echo "Failed to send test execution for TEST-$test_key. HTTP Code: $http_code, Response: $response_body"
+          exit 1
+        else
+          echo "Successfully sent test execution for TEST-$test_key"
+        fi
+      done < parsed_tests.txt
