@@ -10,6 +10,6 @@ test('[TEST-T1] should login with valid credentials', async ({ page }) => {
 
   await homePage.openLoginPage()
 
-  await loginPage.login('tomsmith', 'SuperSecretPass')
+  await loginPage.login('tomsmith', 'SuperSecretPassword!')
   await expect(loginPage.flashSuccess).toBeVisible()
 })
