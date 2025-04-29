@@ -58,7 +58,7 @@ upload_zephyr_results:
           -d "{
             \"projectKey\": \"TEST\",
             \"testCaseKey\": \"TEST-$test_key\",
-            \"testCycleKey\": \"TEST-R4\",
+            \"testCycleKey\": \"TEST-R5\",
             \"statusName\": \"$status\",
             \"environmentName\": \"chromium\",
             \"actualEndDate\": \"2025-04-29T10:04:07Z\",
