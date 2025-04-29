@@ -35,6 +35,7 @@ upload_zephyr_results:
         if [ -z "$test_key" ]; then continue; fi
         execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
         if [ -z "$execution_time" ]; then execution_time=0; fi
+        current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         response=$(curl -s -w "\n%{http_code}" -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
@@ -45,9 +46,12 @@ upload_zephyr_results:
             \"testCycleKey\": \"TEST-R5\",
             \"statusName\": \"$status\",
             \"environmentName\": \"chromium\",
-            \"actualEndDate\": \"2025-04-29T10:04:07Z\",
+            \"actualEndDate\": \"$current_time\",
             \"executionTime\": $execution_time,
-            \"comment\": \"Automated test executed via GitLab CI\"
+            \"comment\": \"Automated test executed via GitLab CI. Duration: $execution_time ms\",
+            \"customFields\": {
+              \"Tester\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
+            }
           }")
         if [ "$(printf '%s' "$response" | tail -n1)" -ne 201 ]; then exit 1; fi
       done < parsed_tests.txt
