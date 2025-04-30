@@ -48,7 +48,8 @@ upload_zephyr_results:
         if [ "$status" = "Pass" ]; then
           comment="Automated test executed via GitLab CI"
         else
-          error_message=$(echo "$error_message" | head -c 4000 | jq -R -s '.')
+          error_message=$(echo "$error_message" | head -c 4000)
+          error_message=$(echo "$error_message" | sed 's/"/\\"/g; s/\\/\\\\/g')
           comment="Test failed: ${error_message:-No error details available}"
         fi
         response=$(curl -s -w "\n%{http_code}" -X POST \
@@ -70,7 +71,6 @@ upload_zephyr_results:
         http_code=$(printf '%s' "$response" | tail -n1)
         if [ "$http_code" -ne 201 ]; then
           echo "Failed to upload test $test_key to Zephyr Scale. HTTP code: $http_code"
-          echo "Response: $response"
           exit 1
         fi
       done < parsed_tests.txt
