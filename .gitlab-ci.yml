@@ -84,11 +84,12 @@ upload_zephyr_results:
     - apt-get update && apt-get install -y curl xmlstarlet bc
   script:
     - |
+      xmlstarlet --version
       if [ ! -f "test-results/junit-report.xml" ]; then
         echo "JUnit report not found. Skipping upload."
         exit 0
       fi
-      xmlstarlet sel -t -m "//testcase[matches(@name, '\[TEST-T[0-9]+\]')]" \
+      xmlstarlet sel -t -m "//testcase[contains(@name, '[TEST-T') and translate(substring-after(@name, '[TEST-T'), '0123456789]', '') = '']" \
         -v "substring-before(substring-after(@name, '[TEST-'), ']')" -o "|" \
         -i "count(failure)=0" -o "Pass" -b -i "count(failure)>0" -o "Fail" -b -o "|" \
         -v "@time" -o "|" \
