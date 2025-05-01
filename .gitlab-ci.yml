@@ -104,10 +104,12 @@ playwright_tests:
     - npm ci
     - npx playwright install chromium
     - npx playwright test || true
+    - echo "TEST_JOB_ID=$CI_JOB_ID" > test_job_id.env
   artifacts:
     when: always
     paths:
       - test-results/junit-report.xml
+      - test_job_id.env
       - playwright-report/
     expire_in: 4 days
   allow_failure: true
@@ -140,6 +142,9 @@ upload_zephyr_results:
         echo "No matching tests found in JUnit report."
         exit 0
       fi
+      source test_job_id.env
+      report_url="https://$CI_PROJECT_ROOT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$TEST_JOB_ID/artifacts/playwright-report/index.html"
+      echo "Report URL: $report_url"
       while IFS='|' read -r test_key status time error_message; do
         if [ -z "$test_key" ] || [ -z "$status" ]; then
           echo "Skipping invalid test: test_key=$test_key, status=$status"
@@ -155,7 +160,6 @@ upload_zephyr_results:
           execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
         fi
         current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        report_url="https://$CI_PROJECT_ROOT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/playwright-report/index.html"
         response=$(curl -s -w "\n%{http_code}" -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
