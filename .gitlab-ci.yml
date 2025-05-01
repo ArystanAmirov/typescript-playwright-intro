@@ -163,7 +163,7 @@ upload_zephyr_results:
           -d "{
             \"projectKey\": \"TEST\",
             \"testCaseKey\": \"TEST-$test_key\",
-            \"testCycleKey\": \"TEST-R5\",
+            \"testCycleKey\": \"TEST-R7\",
             \"statusName\": \"$status\",
             \"environmentName\": \"Pre-Prod\",
             \"actualEndDate\": \"$current_time\",
