@@ -26,17 +26,49 @@
 #     - apt-get update && apt-get install -y curl xmlstarlet bc
 #   script:
 #     - |
-#       if [ ! -f "test-results/junit-report.xml" ]; then exit 1; fi
+#       xmlstarlet --version
+#       if [ ! -f "test-results/junit-report.xml" ]; then
+#         echo "JUnit report not found. Skipping upload."
+#         exit 0
+#       fi
+      
 #       xmlstarlet sel -t -m "//testcase[contains(@name, '[TEST-T')]" \
 #         -v "substring-before(substring-after(@name, '[TEST-'), ']')" -o "|" \
 #         -i "count(failure)=0" -o "Pass" -b -i "count(failure)>0" -o "Fail" -b -o "|" \
-#         -v "@time" -n test-results/junit-report.xml > parsed_tests.txt
-#       if [ ! -s parsed_tests.txt ]; then exit 0; fi
-#       while IFS='|' read -r test_key status time; do
-#         if [ -z "$test_key" ]; then continue; fi
-#         execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
-#         if [ -z "$execution_time" ]; then execution_time=0; fi
+#         -v "@time" -o "|" \
+#         -i "count(failure)=0" -o "" -b \
+#         -i "count(failure)>0" -v "normalize-space(failure)" -b -n test-results/junit-report.xml > parsed_tests.txt 2> xmlstarlet_error.log
+#       echo "xmlstarlet errors (if any):"
+#       cat xmlstarlet_error.log
+#       echo "Parsed tests content:"
+#       cat parsed_tests.txt
+#       if [ ! -s parsed_tests.txt ]; then
+#         echo "No matching tests found in JUnit report."
+#         exit 0
+#       fi
+#       while IFS='|' read -r test_key status time error_message; do
+#         if [ -z "$test_key" ] || [ -z "$status" ]; then
+#           echo "Skipping invalid test: test_key=$test_key, status=$status"
+#           continue
+#         fi
+#         if ! echo "$test_key" | grep -q '^T[0-9]\+$'; then
+#           echo "Skipping invalid test_key format: $test_key"
+#           continue
+#         fi
+#         echo "Processing test: $test_key, status: $status, time: $time"
+#         echo "Error message: $error_message"
+#         execution_time=0
+#         if [ -n "$time" ] && echo "$time" | grep -q '^[0-9]*\.\?[0-9]*$'; then
+#           execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
+#         fi
 #         current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+#         if [ "$status" = "Pass" ]; then
+#           comment="Automated test executed via GitLab CI"
+#         else
+#           error_message=$(echo "$error_message" | head -c 4000 | sed 's/"/\\"/g; s/\\/\\\\/g; s/\n/ /g; s/\t/ /g')
+#           comment="Test failed: ${error_message:-No error details available}"
+#         fi
+#         echo "Comment for $test_key: $comment"
 #         response=$(curl -s -w "\n%{http_code}" -X POST \
 #           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
 #           -H "Content-Type: application/json" \
@@ -44,18 +76,22 @@
 #           -d "{
 #             \"projectKey\": \"TEST\",
 #             \"testCaseKey\": \"TEST-$test_key\",
-#             \"testCycleKey\": \"TEST-R5\",
+#             \"testCycleKey\": \"TEST-R6\",
 #             \"statusName\": \"$status\",
-#             \"environmentName\": \"chromium\",
+#             \"environmentName\": \"Pre-Prod\",
 #             \"actualEndDate\": \"$current_time\",
 #             \"executionTime\": $execution_time,
-#             \"comment\": \"Automated test executed via GitLab CI\",
+#             \"comment\": \"$comment\",
 #             \"assignedToId\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\",
 #             \"executedById\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
 #           }")
-#         if [ "$(printf '%s' "$response" | tail -n1)" -ne 201 ]; then exit 1; fi
+#         http_code=$(printf '%s' "$response" | tail -n1)
+#         if [ "$http_code" -ne 201 ]; then
+#           echo "Failed to upload test $test_key to Zephyr Scale. HTTP code: $http_code"
+#           echo "Response: $response"
+#           exit 1
+#         fi
 #       done < parsed_tests.txt
-
 
 stages:
   - test
@@ -114,19 +150,12 @@ upload_zephyr_results:
           continue
         fi
         echo "Processing test: $test_key, status: $status, time: $time"
-        echo "Error message: $error_message"
         execution_time=0
         if [ -n "$time" ] && echo "$time" | grep -q '^[0-9]*\.\?[0-9]*$'; then
           execution_time=$(echo "$time * 1000" | bc | awk '{print int($1)}')
         fi
         current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        if [ "$status" = "Pass" ]; then
-          comment="Automated test executed via GitLab CI"
-        else
-          error_message=$(echo "$error_message" | head -c 4000 | sed 's/"/\\"/g; s/\\/\\\\/g; s/\n/ /g; s/\t/ /g')
-          comment="Test failed: ${error_message:-No error details available}"
-        fi
-        echo "Comment for $test_key: $comment"
+        report_url="https://$CI_PROJECT_ROOT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/playwright-report/index.html"
         response=$(curl -s -w "\n%{http_code}" -X POST \
           -H "Authorization: Bearer $ZEPHYR_AUTH_TOKEN" \
           -H "Content-Type: application/json" \
@@ -134,12 +163,12 @@ upload_zephyr_results:
           -d "{
             \"projectKey\": \"TEST\",
             \"testCaseKey\": \"TEST-$test_key\",
-            \"testCycleKey\": \"TEST-R6\",
+            \"testCycleKey\": \"TEST-R5\",
             \"statusName\": \"$status\",
-            \"environmentName\": \"Pre-Prod\",
+            \"environmentName\": \"chromium\",
             \"actualEndDate\": \"$current_time\",
             \"executionTime\": $execution_time,
-            \"comment\": \"$comment\",
+            \"comment\": \"$report_url\",
             \"assignedToId\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\",
             \"executedById\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
           }")
