@@ -134,7 +134,7 @@ upload_zephyr_results:
           -d "{
             \"projectKey\": \"TEST\",
             \"testCaseKey\": \"TEST-$test_key\",
-            \"testCycleKey\": \"TEST-R5\",
+            \"testCycleKey\": \"TEST-R6\",
             \"statusName\": \"$status\",
             \"environmentName\": \"chromium\",
             \"actualEndDate\": \"$current_time\",
