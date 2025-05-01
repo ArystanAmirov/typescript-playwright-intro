@@ -165,7 +165,7 @@ upload_zephyr_results:
             \"testCaseKey\": \"TEST-$test_key\",
             \"testCycleKey\": \"TEST-R5\",
             \"statusName\": \"$status\",
-            \"environmentName\": \"chromium\",
+            \"environmentName\": \"Pre-Prod\",
             \"actualEndDate\": \"$current_time\",
             \"executionTime\": $execution_time,
             \"comment\": \"$report_url\",
