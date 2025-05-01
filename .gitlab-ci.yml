@@ -172,7 +172,7 @@ upload_zephyr_results:
             \"environmentName\": \"Pre-Prod\",
             \"actualEndDate\": \"$current_time\",
             \"executionTime\": $execution_time,
-            \"comment\": \"$report_url\",
+            \"comment\": \"[Report]($report_url)\",
             \"assignedToId\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\",
             \"executedById\": \"712020:a5b288d6-14e6-41a5-b964-35f53cbeb28c\"
           }")
